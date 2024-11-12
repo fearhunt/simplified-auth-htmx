@@ -1,7 +1,72 @@
 package views
 
-templ Login() {
-  <div class="w-[400px] max-w-full border shadow-lg rounded-lg px-4 py-7 text-slate-700 text-center relative">
-    <p>𝓼𝓲𝓶𝓹𝓵𝓲𝓯𝓲𝓮𝓭 𝓪𝓾𝓽𝓱 😝</p>
+import "fmt"
+
+// import "fmt"
+// import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
+
+templ headerLoginComponent(name string) {
+  <div id="testingha">
+    // <p>𝓼𝓲𝓶𝓹𝓵𝓲𝓯𝓲𝓮𝓭 𝓪𝓾𝓽𝓱 😝</p>
+    <p class="text-xl font-bold">Simplified Auth 😝</p>
+    <p class={ "text-xs", templ.KV("h-4", name == "") }>
+      if name != "" {
+        Welcome back, <strong>{name}</strong>!
+      }
+    </p>
+  </div>
+}
+
+templ Login(username, password, name string) {
+  <div 
+    id="login-wrapper"
+    class="w-[400px] max-w-full border shadow-lg rounded-lg px-4 py-6 text-slate-700 bg-white relative">
+    @headerLoginComponent(name)
+
+    <form
+      hx-post="/auth/login"
+      method="P"
+      class="flex flex-col gap-3 !mt-2">
+      <div class="space-y-1">
+        <label for="input-username" class="text-xs mb-1">Username</label>
+        <input
+          id="input-username" 
+          name="username"
+          hx-get="/user/find"
+          hx-trigger="keyup changed delay:750ms"
+          hx-target="#login-wrapper"
+          hx-swap="outerHTML"
+          value={ username }
+          type="text"
+          placeholder="eg: john_doe (real)"
+          class="block w-full text-sm border rounded p-1.5">
+      </div>
+
+      <div class="space-y-1">
+        <label for="input-password" class="text-xs mb-1">Password</label>
+        <input
+          id="input-password"
+          name="password"
+          type="password" 
+          if username != "" {
+            placeholder={ fmt.Sprintf("eg: %s (real)", password) }
+          } else {
+            placeholder="Input username first"
+            disabled
+          }
+          class="block w-full text-sm border rounded p-1.5 transition disabled:bg-gray-100">
+      </div>
+
+      <button 
+        type="submit"
+        class={
+          "bg-[rgba(54,162,235,0.8)] hover:bg-[rgba(54,162,235,1)] disabled:opacity-60 disabled:cursor-not-allowed transition",
+          "text-white font-semibold py-2 px-4 rounded-md",
+          "shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50",
+        }
+        disabled?={ username == "" }>
+        Login
+      </button>
+    </form>
   </div>
 }

@@ -22,20 +22,25 @@ func StartServer(session *sessions.Session) {
 
 	// Page specific handlers
 	r.Get("/", indexPage(session))
-	// r.Get("/", templ.Handler(views.Index(session)).ServeHTTP)
+
+	// API handlers
+	r.Get("/user/find", findUsername(session))
+
+	// r.Route("/api", func(r chi.Router) {
+	// 	r.Get("/user/find", findUsername())
+	// })
 
 	// Start plain HTTP listener
 	fmt.Println("starting server simplified-auth-htmx...")
-	_ = http.ListenAndServe(":3000", r)
+	_ = http.ListenAndServe(":8215", r)
 }
 
 func indexPage(session *sessions.Session) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var a string = session.GetString(r, "astaga")
-		fmt.Printf("%v", a)
+		username := session.GetString(r, "username")
+		password := session.GetString(r, "password")
+		name := session.GetString(r, "name")
 
-		templ.Handler(views.Index(a)).ServeHTTP(w, r)
-
-		return
+		templ.Handler(views.Index(username, password, name)).ServeHTTP(w, r)
 	}
 }
