@@ -1,31 +1,28 @@
 package views
 
 import "fmt"
+import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
 
-// import "fmt"
-// import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
-
-templ headerLoginComponent(name string) {
+templ headerLoginComponent(u *entity.User) {
   <div id="testingha">
     // <p>𝓼𝓲𝓶𝓹𝓵𝓲𝓯𝓲𝓮𝓭 𝓪𝓾𝓽𝓱 😝</p>
     <p class="text-xl font-bold">Simplified Auth 😝</p>
-    <p class={ "text-xs", templ.KV("h-4", name == "") }>
-      if name != "" {
-        Welcome back, <strong>{name}</strong>!
+    <p class={ "text-xs", templ.KV("h-4", u == nil || u.Name == "") }>
+      if u != nil && u.Name != "" {
+        Welcome back, <strong>{u.Name}</strong>!
       }
     </p>
   </div>
 }
 
-templ Login(username, password, name string) {
+templ Login(u *entity.User) {
   <div 
     id="login-wrapper"
     class="w-[400px] max-w-full border shadow-lg rounded-lg px-4 py-6 text-slate-700 bg-white relative">
-    @headerLoginComponent(name)
+    @headerLoginComponent(u)
 
     <form
       hx-post="/auth/login"
-      method="P"
       class="flex flex-col gap-3 !mt-2">
       <div class="space-y-1">
         <label for="input-username" class="text-xs mb-1">Username</label>
@@ -36,7 +33,9 @@ templ Login(username, password, name string) {
           hx-trigger="keyup changed delay:750ms"
           hx-target="#login-wrapper"
           hx-swap="outerHTML"
-          value={ username }
+          if u != nil {
+            value={ u.Username }
+          }
           type="text"
           placeholder="eg: john_doe (real)"
           class="block w-full text-sm border rounded p-1.5">
@@ -48,8 +47,8 @@ templ Login(username, password, name string) {
           id="input-password"
           name="password"
           type="password" 
-          if username != "" {
-            placeholder={ fmt.Sprintf("eg: %s (real)", password) }
+          if u != nil && u.Password != "" {
+            placeholder={ fmt.Sprintf("eg: %s (real)", u.Password) }
           } else {
             placeholder="Input username first"
             disabled
@@ -64,7 +63,7 @@ templ Login(username, password, name string) {
           "text-white font-semibold py-2 px-4 rounded-md",
           "shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50",
         }
-        disabled?={ username == "" }>
+        disabled?={ u == nil || u.Password == "" }>
         Login
       </button>
     </form>

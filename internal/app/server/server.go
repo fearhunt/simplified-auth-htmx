@@ -37,10 +37,6 @@ func StartServer(session *sessions.Session) {
 
 func indexPage(session *sessions.Session) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		username := session.GetString(r, "username")
-		password := session.GetString(r, "password")
-		name := session.GetString(r, "name")
-
-		templ.Handler(views.Index(username, password, name)).ServeHTTP(w, r)
+		templ.Handler(views.Index(nil)).ServeHTTP(w, r)
 	}
 }

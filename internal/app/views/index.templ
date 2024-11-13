@@ -1,6 +1,6 @@
 package views
 
-// import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
+import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
 
 templ headerComponent() {
 	<head>
@@ -41,13 +41,13 @@ templ footerComponent() {
 	</footer>
 }
 
-templ Index(username, password, name string) {
+templ Index(u *entity.User) {
 	<html class="font-[Poppins]">
 		@headerComponent()
 
 		<body>
 			<main class="min-h-screen flex flex-col items-center justify-center p-2 lg:p-6">
-				@Login(username, password, name)	
+				@Login(u)	
 				@footerComponent()
 			</main>
 		</body>

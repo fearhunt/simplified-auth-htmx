@@ -65,16 +65,20 @@ func findUsername(session *sessions.Session) func(w http.ResponseWriter, r *http
 
 		for i := range users {
 			if users[i].Username == qUser {
-				session.Put(r, "name", users[i].Name)
-				session.Put(r, "username", users[i].Username)
-				session.Put(r, "password", users[i].Password)
+				currentUser := users[i]
+				templ.Handler(views.Login(&currentUser)).ServeHTTP(w, r)
+				// session.Put(r, "name", users[i].Name)
+				// session.Put(r, "username", users[i].Username)
+				// session.Put(r, "password", users[i].Password)
 
-				templ.Handler(views.Login(users[i].Username, users[i].Password, users[i].Name)).ServeHTTP(w, r)
+				// templ.Handler(views.Login(users[i].Username, users[i].Password, users[i].Name)).ServeHTTP(w, r)
 				return
 			}
 		}
 
 		session.Destroy(r)
-		templ.Handler(views.Login("", "", "")).ServeHTTP(w, r)
+		templ.Handler(views.Login(&entity.User{
+			Username: qUser,
+		})).ServeHTTP(w, r)
 	}
 }

@@ -9,10 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "fmt"
+import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
 
-// import "fmt"
-// import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
-func headerLoginComponent(name string) templ.Component {
+func headerLoginComponent(u *entity.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -37,7 +36,7 @@ func headerLoginComponent(name string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 = []any{"text-xs", templ.KV("h-4", name == "")}
+		var templ_7745c5c3_Var2 = []any{"text-xs", templ.KV("h-4", u == nil || u.Name == "")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -59,15 +58,15 @@ func headerLoginComponent(name string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if name != "" {
+		if u != nil && u.Name != "" {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("Welcome back, <strong>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(name)
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(u.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/app/views/login.templ`, Line: 14, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/app/views/login.templ`, Line: 12, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -86,7 +85,7 @@ func headerLoginComponent(name string) templ.Component {
 	})
 }
 
-func Login(username, password, name string) templ.Component {
+func Login(u *entity.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -111,36 +110,46 @@ func Login(username, password, name string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = headerLoginComponent(name).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = headerLoginComponent(u).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/auth/login\" method=\"P\" class=\"flex flex-col gap-3 !mt-2\"><div class=\"space-y-1\"><label for=\"input-username\" class=\"text-xs mb-1\">Username</label> <input id=\"input-username\" name=\"username\" hx-get=\"/user/find\" hx-trigger=\"keyup changed delay:750ms\" hx-target=\"#login-wrapper\" hx-swap=\"outerHTML\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/auth/login\" class=\"flex flex-col gap-3 !mt-2\"><div class=\"space-y-1\"><label for=\"input-username\" class=\"text-xs mb-1\">Username</label> <input id=\"input-username\" name=\"username\" hx-get=\"/user/find\" hx-trigger=\"keyup changed delay:750ms\" hx-target=\"#login-wrapper\" hx-swap=\"outerHTML\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(username)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/app/views/login.templ`, Line: 39, Col: 26}
+		if u != nil {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(u.Username)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/app/views/login.templ`, Line: 37, Col: 30}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" type=\"text\" placeholder=\"eg: john_doe (real)\" class=\"block w-full text-sm border rounded p-1.5\"></div><div class=\"space-y-1\"><label for=\"input-password\" class=\"text-xs mb-1\">Password</label> <input id=\"input-password\" name=\"password\" type=\"password\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" type=\"text\" placeholder=\"eg: john_doe (real)\" class=\"block w-full text-sm border rounded p-1.5\"></div><div class=\"space-y-1\"><label for=\"input-password\" class=\"text-xs mb-1\">Password</label> <input id=\"input-password\" name=\"password\" type=\"password\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if username != "" {
+		if u != nil && u.Password != "" {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" placeholder=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("eg: %s (real)", password))
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("eg: %s (real)", u.Password))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/app/views/login.templ`, Line: 52, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/app/views/login.templ`, Line: 51, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -186,7 +195,7 @@ func Login(username, password, name string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if username == "" {
+		if u == nil || u.Password == "" {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" disabled")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
