@@ -1,71 +1,82 @@
 package views
 
-import "fmt"
-import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
+import (
+	"fmt"
+	"github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
+)
 
 templ headerLoginComponent(u *entity.User) {
-  <div id="testingha">
-    // <p>𝓼𝓲𝓶𝓹𝓵𝓲𝓯𝓲𝓮𝓭 𝓪𝓾𝓽𝓱 😝</p>
-    <p class="text-xl font-bold">Simplified Auth 😝</p>
-    <p class={ "text-xs", templ.KV("h-4", u == nil || u.Name == "") }>
-      if u != nil && u.Name != "" {
-        Welcome back, <strong>{u.Name}</strong>!
-      }
-    </p>
-  </div>
+	<div id="testingha">
+		// <p>𝓼𝓲𝓶𝓹𝓵𝓲𝓯𝓲𝓮𝓭 𝓪𝓾𝓽𝓱 😝</p>
+		<p class="text-xl font-bold">Simplified Auth 😝</p>
+		<p class={ "text-xs", templ.KV("h-4", u == nil || u.Name == "") }>
+			if u != nil && u.Name != "" {
+				Welcome back, <strong>{ u.Name }</strong>!
+			}
+		</p>
+	</div>
 }
 
-templ Login(u *entity.User) {
-  <div 
-    id="login-wrapper"
-    class="w-[400px] max-w-full border shadow-lg rounded-lg px-4 py-6 text-slate-700 bg-white relative">
-    @headerLoginComponent(u)
+templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
+	<div
+		id="login-wrapper"
+		class="w-[400px] max-w-full border shadow-lg rounded-lg px-4 py-6 text-slate-700 bg-white relative">
+		@headerLoginComponent(u)
 
-    <form
-      hx-post="/auth/login"
-      class="flex flex-col gap-3 !mt-2">
-      <div class="space-y-1">
-        <label for="input-username" class="text-xs mb-1">Username</label>
-        <input
-          id="input-username" 
-          name="username"
-          hx-get="/user/find"
-          hx-trigger="keyup changed delay:750ms"
-          hx-target="#login-wrapper"
-          hx-swap="outerHTML"
-          if u != nil {
-            value={ u.Username }
-          }
-          type="text"
-          placeholder="eg: john_doe (real)"
-          class="block w-full text-sm border rounded p-1.5">
-      </div>
+		<form
+			hx-post="/auth/login"
+			class="flex flex-col gap-3 !mt-2">
+			<div class="space-y-1">
+				<label for="input-username" class="text-xs mb-1">Username</label>
+				<input
+					id="input-username"
+					name="username"
+					hx-get="/user/find"
+					hx-trigger="keyup changed delay:750ms"
+					hx-target="#login-wrapper"
+					hx-swap="outerHTML"
+					if u != nil {
+						value={ u.Username }
+					}
+					type="text"
+					placeholder="eg: john_doe (real)"
+					class="block w-full text-sm border rounded p-1.5"
+				/>
 
-      <div class="space-y-1">
-        <label for="input-password" class="text-xs mb-1">Password</label>
-        <input
-          id="input-password"
-          name="password"
-          type="password" 
-          if u != nil && u.Password != "" {
-            placeholder={ fmt.Sprintf("eg: %s (real)", u.Password) }
-          } else {
-            placeholder="Input username first"
-            disabled
-          }
-          class="block w-full text-sm border rounded p-1.5 transition disabled:bg-gray-100">
-      </div>
-
-      <button 
-        type="submit"
-        class={
-          "bg-[rgba(54,162,235,0.8)] hover:bg-[rgba(54,162,235,1)] disabled:opacity-60 disabled:cursor-not-allowed transition",
-          "text-white font-semibold py-2 px-4 rounded-md",
-          "shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50",
+        if fla.UsernameCheck != 0 && u != nil {
+          <div class="flex gap-2 items-center justify-between mt-1">
+            <span class="text-xs text-red-600">Username <strong>{u.Username}</strong> does not exist.</span>
+            if fla.UsernameCheck >= 3 {
+              <span class="text-xs text-blue-400 hover:text-blue-500 transition-colors underline cursor-pointer">Forgot Username?</span>
+            } 
+          </div>
         }
-        disabled?={ u == nil || u.Password == "" }>
-        Login
-      </button>
-    </form>
-  </div>
+			</div>
+			<div class="space-y-1">
+				<label for="input-password" class="text-xs mb-1">Password</label>
+				<input
+					id="input-password"
+					name="password"
+					type="password"
+					if u != nil && u.Password != "" {
+						placeholder={ fmt.Sprintf("eg: %s (real)", u.Password) }
+					} else {
+						placeholder="Input username first"
+						disabled
+					}
+					class="block w-full text-sm border rounded p-1.5 transition disabled:bg-gray-100"
+				/>
+			</div>
+			<button
+				type="submit"
+				class={
+					"bg-[rgba(54,162,235,0.8)] hover:bg-[rgba(54,162,235,1)] disabled:opacity-60 disabled:cursor-not-allowed transition",
+					"text-white font-semibold py-2 px-4 rounded-md",
+					"shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50",
+				}
+				disabled?={ u == nil || u.Password == "" }>
+				Login
+			</button>
+		</form>
+	</div>
 }

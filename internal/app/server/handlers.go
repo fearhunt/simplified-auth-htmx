@@ -58,27 +58,55 @@ func getAllUser() []entity.User {
 	return users
 }
 
+func GetFailedLoginAttempts(session *sessions.Session, r *http.Request) entity.FailedLoginAttempts {
+	fla, ok := session.Get(r, "failedLoginAttempts").(entity.FailedLoginAttempts)
+	if !ok {
+		fla = entity.FailedLoginAttempts{
+			UsernameCheck: 0,
+			Password:      0,
+		}
+	}
+
+	return fla
+}
+
+func setFailedLogginAttempts(
+	session *sessions.Session,
+	r *http.Request,
+	usernameCheckAttempt, passwordAttempt int,
+) entity.FailedLoginAttempts {
+	fla := entity.FailedLoginAttempts{
+		UsernameCheck: usernameCheckAttempt,
+		Password:      passwordAttempt,
+	}
+	session.Put(r, "failedLoginAttempts", fla)
+
+	return fla
+}
+
 func findUsername(session *sessions.Session) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fla := GetFailedLoginAttempts(session, r)
 		qUser := r.URL.Query().Get("username")
 		users := getAllUser()
 
 		for i := range users {
 			if users[i].Username == qUser {
+				fla = setFailedLogginAttempts(session, r, 0, 0)
 				currentUser := users[i]
-				templ.Handler(views.Login(&currentUser)).ServeHTTP(w, r)
-				// session.Put(r, "name", users[i].Name)
-				// session.Put(r, "username", users[i].Username)
-				// session.Put(r, "password", users[i].Password)
-
-				// templ.Handler(views.Login(users[i].Username, users[i].Password, users[i].Name)).ServeHTTP(w, r)
+				templ.Handler(views.Login(&currentUser, fla)).ServeHTTP(w, r)
 				return
 			}
 		}
 
-		session.Destroy(r)
+		var failedUsernameCheck = fla.UsernameCheck
+		if qUser != "" {
+			failedUsernameCheck++
+		}
+
+		fla = setFailedLogginAttempts(session, r, failedUsernameCheck, 0)
 		templ.Handler(views.Login(&entity.User{
 			Username: qUser,
-		})).ServeHTTP(w, r)
+		}, fla)).ServeHTTP(w, r)
 	}
 }
