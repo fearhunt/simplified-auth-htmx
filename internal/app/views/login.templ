@@ -18,6 +18,15 @@ templ headerLoginComponent(u *entity.User) {
 }
 
 templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
+	<script>
+		function showModal() {
+			const modal = document.querySelector('#modal-account-list')
+			const dialog = modal.querySelector('dialog')
+			if (dialog)
+				dialog.showModal()
+		}
+	</script>
+
 	<div
 		id="login-wrapper"
 		class="w-[400px] max-w-full border shadow-lg rounded-lg px-4 py-6 text-slate-700 bg-white relative">
@@ -31,7 +40,7 @@ templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
 				<input
 					id="input-username"
 					name="username"
-					hx-get="/user/find"
+					hx-get="/users/find"
 					hx-trigger="keyup changed delay:750ms"
 					hx-target="#login-wrapper"
 					hx-swap="outerHTML"
@@ -47,7 +56,13 @@ templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
           <div class="flex gap-2 items-center justify-between mt-1">
             <span class="text-xs text-red-600">Username <strong>{u.Username}</strong> does not exist.</span>
             if fla.UsernameCheck >= 3 {
-              <span class="text-xs text-blue-400 hover:text-blue-500 transition-colors underline cursor-pointer">Forgot Username?</span>
+              <button
+                hx-get="/users"
+                hx-target="#modal-account-list"
+								hx-on::after-request="showModal()"
+                class="text-xs text-blue-400 hover:text-blue-500 transition-colors underline cursor-pointer">
+                Forgot Username?
+              </button>
             } 
           </div>
         }
@@ -78,5 +93,7 @@ templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
 				Login
 			</button>
 		</form>
+
+		<div id="modal-account-list" />
 	</div>
 }

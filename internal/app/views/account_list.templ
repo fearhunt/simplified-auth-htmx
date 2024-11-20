@@ -1,0 +1,45 @@
+package views
+
+import "github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
+
+templ headerDialogAccountList() {
+  <script>
+    function removeDialog() {
+      const dialog = document.querySelector('dialog')
+      if (dialog)
+        dialog.close()
+    }
+  </script>
+
+  <div class="px-4 pt-4 flex items-center justify-between">
+    <p class="text-lg font-medium">Account List</p>
+    <button 
+      class="hover:ring-2 hover:ring-blue-500 hover:ring-opacity-50 p-0.5 size-6 select-none"
+      onclick="removeDialog()">
+      X
+    </button>
+  </div>
+}
+
+templ AccountList(users *[]entity.User) {
+  <dialog 
+    class="text-sm backdrop:bg-black/30 p-0"
+    _="on dialog_close remove me
+       on keydown if the event's key is 'Escape' remove me">
+    @headerDialogAccountList()
+
+    <div class="p-4">
+      if users != nil {
+        <ul>
+          for _, u := range *users {
+            <li><strong>{u.Username}</strong> ({u.Name})</li>
+          } 
+        </ul>
+      } else {
+        <p class="text-sm text-center">
+          No user list.
+        </p>
+      }
+    </div>
+  </dialog>
+}

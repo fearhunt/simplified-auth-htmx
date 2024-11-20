@@ -58,7 +58,14 @@ func getAllUser() []entity.User {
 	return users
 }
 
-func GetFailedLoginAttempts(session *sessions.Session, r *http.Request) entity.FailedLoginAttempts {
+func displayAllUsers() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		users := getAllUser()
+		templ.Handler(views.AccountList(&users)).ServeHTTP(w, r)
+	}
+}
+
+func getFailedLoginAttempts(session *sessions.Session, r *http.Request) entity.FailedLoginAttempts {
 	fla, ok := session.Get(r, "failedLoginAttempts").(entity.FailedLoginAttempts)
 	if !ok {
 		fla = entity.FailedLoginAttempts{
@@ -86,7 +93,7 @@ func setFailedLogginAttempts(
 
 func findUsername(session *sessions.Session) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fla := GetFailedLoginAttempts(session, r)
+		fla := getFailedLoginAttempts(session, r)
 		qUser := r.URL.Query().Get("username")
 		users := getAllUser()
 

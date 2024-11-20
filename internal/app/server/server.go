@@ -27,7 +27,8 @@ func StartServer(session *sessions.Session) {
 	r.Get("/", indexPage(session))
 
 	// API handlers
-	r.Get("/user/find", findUsername(session))
+	r.Get("/users", displayAllUsers())
+	r.Get("/users/find", findUsername(session))
 
 	// r.Route("/api", func(r chi.Router) {
 	// 	r.Get("/user/find", findUsername())
@@ -40,7 +41,7 @@ func StartServer(session *sessions.Session) {
 
 func indexPage(session *sessions.Session) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fla := GetFailedLoginAttempts(session, r)
+		fla := getFailedLoginAttempts(session, r)
 		templ.Handler(views.Index(nil, fla)).ServeHTTP(w, r)
 	}
 }
