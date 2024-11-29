@@ -1,7 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/a-h/templ"
@@ -115,5 +117,31 @@ func findUsername(session *sessions.Session) func(w http.ResponseWriter, r *http
 		templ.Handler(views.Login(&entity.User{
 			Username: qUser,
 		}, fla)).ServeHTTP(w, r)
+	}
+}
+
+func validatePassword(session *sessions.Session) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		password := r.FormValue("password")
+		correctPassword := r.FormValue("correct_password")
+		strIsMasked := r.FormValue("masked")
+		isMasked := false
+
+		if strIsMasked != "" {
+			val, err := strconv.ParseBool(strIsMasked)
+
+			if err != nil {
+				fmt.Println("error when parsing bool: %s", strIsMasked)
+			}
+
+			isMasked = val
+		}
+
+		templ.Handler(views.PasswordMatch(
+			password,
+			correctPassword,
+			getFailedLoginAttempts(session, r),
+			isMasked,
+		)).ServeHTTP(w, r)
 	}
 }

@@ -29,10 +29,16 @@ func StartServer(session *sessions.Session) {
 	// API handlers
 	r.Get("/users", displayAllUsers())
 	r.Get("/users/find", findUsername(session))
+	r.Post("/user/validate-password", validatePassword(session))
 
-	// r.Route("/api", func(r chi.Router) {
-	// 	r.Get("/user/find", findUsername())
+	// chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+	// 	fmt.Printf("[%s]: '%s' has %d middlewares\n", method, route, len(middlewares))
+	// 	return nil
 	// })
+
+	// Handling public files
+	fs := http.FileServer(http.Dir("./public"))
+	r.Handle("/assets/*", http.StripPrefix(("/assets/"), fs))
 
 	// Start plain HTTP listener
 	fmt.Println("starting server simplified-auth-htmx...")

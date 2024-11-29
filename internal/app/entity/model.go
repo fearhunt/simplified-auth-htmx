@@ -15,3 +15,10 @@ type FailedLoginAttempts struct {
 	UsernameCheck int
 	Password      int
 }
+
+type ValidatePasswordInput struct {
+	Username        string `json:"username"`
+	Password        string `json:"password"`
+	CorrectPassword string `json:"correct_password"`
+	IsMasked        bool   `json:"masked"`
+}

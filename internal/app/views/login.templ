@@ -1,17 +1,26 @@
 package views
 
 import (
-	"fmt"
 	"github.com/fearhunt/simplified-auth-htmx/internal/app/entity"
+	"fmt"
+	"strconv"
 )
 
 templ headerLoginComponent(u *entity.User) {
-	<div id="testingha">
+	{{ 
+		var name string
+
+		if u != nil && u.Name != "" {
+			name = u.Name
+		}
+	}}
+
+	<div>
 		// <p>𝓼𝓲𝓶𝓹𝓵𝓲𝓯𝓲𝓮𝓭 𝓪𝓾𝓽𝓱 😝</p>
 		<p class="text-xl font-bold">Simplified Auth 😝</p>
-		<p class={ "text-xs", templ.KV("h-4", u == nil || u.Name == "") }>
-			if u != nil && u.Name != "" {
-				Welcome back, <strong>{ u.Name }</strong>!
+		<p class={ "text-xs", templ.KV("h-4", name == "") }>
+			if name != "" {
+				Welcome back, <strong>{ name }</strong>!
 			}
 		</p>
 	</div>
@@ -53,47 +62,111 @@ templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
 				/>
 
         if fla.UsernameCheck != 0 && u != nil {
-          <div class="flex gap-2 items-center justify-between mt-1">
-            <span class="text-xs text-red-600">Username <strong>{u.Username}</strong> does not exist.</span>
+          <div class="flex gap-2.5 justify-between mt-1">
+            <span class="text-xs text-red-600">Username <strong>{ u.Username }</strong> does not exist.</span>
             if fla.UsernameCheck >= 3 {
               <button
                 hx-get="/users"
                 hx-target="#modal-account-list"
 								hx-on::after-request="showModal()"
-                class="text-xs text-blue-400 hover:text-blue-500 transition-colors underline cursor-pointer">
+                class="shrink-0 text-xs text-blue-400 hover:text-blue-500 transition-colors underline cursor-pointer">
                 Forgot Username?
               </button>
             } 
           </div>
         }
 			</div>
+
 			<div class="space-y-1">
 				<label for="input-password" class="text-xs mb-1">Password</label>
 				<input
 					id="input-password"
 					name="password"
 					type="password"
-					if u != nil && u.Password != "" {
-						placeholder={ fmt.Sprintf("eg: %s (real)", u.Password) }
+					maxlength={ strconv.Itoa(len(getSafePassword(u))) }
+					hx-post="/user/validate-password"
+					hx-vals={ fmt.Sprintf(`{"correct_password": "%s"}`, getSafePassword(u)) }
+					hx-trigger="keyup changed"
+					hx-target="#password-matcher-wrapper"
+					if getSafePassword(u) != "" {
+						placeholder="Input password"
 					} else {
-						placeholder="Input username first"
+						placeholder="Please input username first"
 						disabled
 					}
 					class="block w-full text-sm border rounded p-1.5 transition disabled:bg-gray-100"
 				/>
+
+				<div id="password-matcher-wrapper" />
 			</div>
+
 			<button
 				type="submit"
-				class={
-					"bg-[rgba(54,162,235,0.8)] hover:bg-[rgba(54,162,235,1)] disabled:opacity-60 disabled:cursor-not-allowed transition",
-					"text-white font-semibold py-2 px-4 rounded-md",
-					"shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50",
-				}
-				disabled?={ u == nil || u.Password == "" }>
+				class="bg-[rgba(54,162,235,0.8)] hover:bg-[rgba(54,162,235,1)] disabled:opacity-60 disabled:cursor-not-allowed transition
+					text-white font-semibold py-2 px-4 rounded-md
+					shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+				disabled?={ getSafePassword(u) == "" }>
 				Login
 			</button>
 		</form>
 
 		<div id="modal-account-list" />
 	</div>
+}
+
+templ PasswordMatch(inputPwd, correctPwd string, fla entity.FailedLoginAttempts, isMasked bool) {
+	if correctPwd != "" {
+		<div class="flex gap-1 items-center text-sm">
+			<div>
+				for i := range len(correctPwd) {
+					{{ 
+						isMatch := false
+
+						if (i - 1) <= len(inputPwd) {
+							isMatch = inputPwd[i] == correctPwd[i]
+						}
+					}}
+
+					<span>
+						if i <= 1 || i >= (len(correctPwd) - 2) || !isMasked {
+							<span class={ 
+								templ.KV("text-red-600", !isMatch), 
+								templ.KV("text-green-600", isMatch) 
+							}>
+								{ fmt.Sprintf("%c", correctPwd[i]) }
+							</span>
+						} else {
+							<span class={ 
+								templ.KV("text-red-600", !isMatch), 
+								templ.KV("text-green-600", isMatch) 
+							}>*</span>
+						}
+					</span>
+				}
+			</div>
+
+			<button
+				hx-post="/user/validate-password"
+				hx-vals={ fmt.Sprintf(`{"correct_password": "%s", "masked": "%s"}`, correctPwd, !isMasked) }
+				type="button"
+				class="size-4">
+				<img 
+					class="img-password" 
+					if isMasked {
+						src="/assets/img/eye-password-hidden.svg"
+					} else {
+						src="/assets/img/eye-password-shown.svg"
+					}
+				/>	
+			</button>
+		</div>
+	}
+}
+
+func getSafePassword(u *entity.User) string {
+	if u == nil {
+		return ""
+	}
+
+	return u.Password
 }
