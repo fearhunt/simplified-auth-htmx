@@ -12,6 +12,13 @@ import (
 	"github.com/golangcollege/sessions"
 )
 
+func indexPage(session *sessions.Session) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fla := getFailedLoginAttempts(session, r)
+		templ.Handler(views.Index(nil, fla)).ServeHTTP(w, r)
+	}
+}
+
 func getAllUser() []entity.User {
 	// yes, hardcode
 	users := []entity.User{
@@ -125,7 +132,7 @@ func validatePassword(session *sessions.Session) func(w http.ResponseWriter, r *
 		password := r.FormValue("password")
 		correctPassword := r.FormValue("correct_password")
 		strIsMasked := r.FormValue("masked")
-		isMasked := false
+		isMasked := true
 
 		if strIsMasked != "" {
 			val, err := strconv.ParseBool(strIsMasked)
@@ -143,5 +150,21 @@ func validatePassword(session *sessions.Session) func(w http.ResponseWriter, r *
 			getFailedLoginAttempts(session, r),
 			isMasked,
 		)).ServeHTTP(w, r)
+	}
+}
+
+func handleLogin(session *sessions.Session) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// username := r.FormValue("username")
+		password := r.FormValue("password")
+		correctPassword := r.FormValue("correct_password")
+
+		if password == correctPassword {
+			templ.Handler(views.SuccessLogin()).ServeHTTP(w, r)
+		} else {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			templ.Handler(views.ErrMessage("Wrong password!")).ServeHTTP(w, r)
+		}
+
 	}
 }

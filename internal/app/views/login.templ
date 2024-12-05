@@ -38,11 +38,16 @@ templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
 
 	<div
 		id="login-wrapper"
+		hx-ext="response-targets"
 		class="w-[400px] max-w-full border shadow-lg rounded-lg px-4 py-6 text-slate-700 bg-white relative">
 		@headerLoginComponent(u)
 
 		<form
 			hx-post="/auth/login"
+			hx-vals={ fmt.Sprintf(`{"correct_password": "%s"}`, getSafePassword(u)) }
+			hx-target="#login-wrapper"
+			hx-target-422="#err-submit-wrapper"
+			hx-swap="innerHTML"
 			class="flex flex-col gap-3 !mt-2">
 			<div class="space-y-1">
 				<label for="input-username" class="text-xs mb-1">Username</label>
@@ -97,7 +102,9 @@ templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
 					class="block w-full text-sm border rounded p-1.5 transition disabled:bg-gray-100"
 				/>
 
-				<div id="password-matcher-wrapper" />
+				<div id="password-matcher-wrapper">
+					@PasswordMatch("", getSafePassword(u), fla, true)
+				</div>
 			</div>
 
 			<button
@@ -108,6 +115,7 @@ templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
 				disabled?={ getSafePassword(u) == "" }>
 				Login
 			</button>
+			<div id="err-submit-wrapper" />
 		</form>
 
 		<div id="modal-account-list" />
@@ -116,38 +124,38 @@ templ Login(u *entity.User, fla entity.FailedLoginAttempts) {
 
 templ PasswordMatch(inputPwd, correctPwd string, fla entity.FailedLoginAttempts, isMasked bool) {
 	if correctPwd != "" {
+		<small class="text-gray-500 text-[10px] mt-1">Hint:</small>
+
 		<div class="flex gap-1 items-center text-sm">
 			<div>
 				for i := range len(correctPwd) {
 					{{ 
 						isMatch := false
 
-						if (i - 1) <= len(inputPwd) {
+						if i <= len(inputPwd) - 1 {
 							isMatch = inputPwd[i] == correctPwd[i]
 						}
 					}}
 
-					<span>
-						if i <= 1 || i >= (len(correctPwd) - 2) || !isMasked {
-							<span class={ 
-								templ.KV("text-red-600", !isMatch), 
-								templ.KV("text-green-600", isMatch) 
-							}>
+					<span class="password-hint">
+						<spann class={
+							templ.KV("text-red-600", !isMatch),
+							templ.KV("text-green-600", isMatch)
+						}>
+							if i <= 1 || i >= (len(correctPwd) - 2) || !isMasked {
 								{ fmt.Sprintf("%c", correctPwd[i]) }
-							</span>
-						} else {
-							<span class={ 
-								templ.KV("text-red-600", !isMatch), 
-								templ.KV("text-green-600", isMatch) 
-							}>*</span>
-						}
+							} else {
+								*
+							}
+						</spann>
 					</span>
 				}
 			</div>
 
 			<button
 				hx-post="/user/validate-password"
-				hx-vals={ fmt.Sprintf(`{"correct_password": "%s", "masked": "%s"}`, correctPwd, !isMasked) }
+				hx-vals={ fmt.Sprintf(`{"correct_password": "%s", "masked": %v}`, correctPwd, !isMasked) }
+				hx-target="#password-matcher-wrapper"
 				type="button"
 				class="size-4">
 				<img 
@@ -161,6 +169,22 @@ templ PasswordMatch(inputPwd, correctPwd string, fla entity.FailedLoginAttempts,
 			</button>
 		</div>
 	}
+}
+
+templ SuccessLogin() {
+	<div class="flex flex-col gap-4 items-center">
+		<p class="text-center text-xl font-bold">yay, you made it! 🥳</p> 
+		<button
+			hx-get="/"
+			hx-target="body"
+			hx-swap="innerHTML"
+			type="button"
+			class="bg-[rgba(54,162,235,0.8)] hover:bg-[rgba(54,162,235,1)] disabled:opacity-60 disabled:cursor-not-allowed transition
+				text-white font-semibold py-2 px-4 rounded-md
+				shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+			Relogin
+		</button>	
+	</div>
 }
 
 func getSafePassword(u *entity.User) string {
